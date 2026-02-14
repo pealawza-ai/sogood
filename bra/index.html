@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SOGOOD - Login</title>
+    <title>SOGOOD - Login & Register</title>
     <style>
-        /* --- ดีไซน์เดิมที่รักษาไว้ --- */
         body {
             background-color: #0d0d0d;
             color: white;
@@ -20,7 +19,7 @@
 
         .login-container {
             background: #1a1a1a;
-            padding: 40px;
+            padding: 30px;
             border-radius: 20px;
             box-shadow: 0 0 25px rgba(0,0,0,0.7);
             text-align: center;
@@ -31,7 +30,7 @@
         input {
             width: 100%;
             padding: 12px;
-            margin: 10px 0;
+            margin: 8px 0;
             border-radius: 10px;
             border: 1px solid #444;
             background: #252525;
@@ -56,10 +55,9 @@
         button:hover {
             background: #00cc6e;
             transform: scale(1.03);
-            box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
         }
 
-        /* --- UI สมัครสำเร็จ (เพิ่มใหม่) --- */
+        /* UI แจ้งเตือนสำเร็จ */
         .success-overlay {
             display: none;
             position: fixed;
@@ -78,43 +76,29 @@
             border-radius: 30px;
             text-align: center;
             box-shadow: 0 0 50px rgba(0,255,136,0.5);
-            animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        @keyframes popUp {
-            from { transform: scale(0.8); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-
-        .icon-check {
-            font-size: 60px;
-            color: #00ff88;
-            margin-bottom: 15px;
-            filter: drop-shadow(0 0 10px #00ff88);
         }
     </style>
 </head>
 <body>
 
     <div class="login-container">
-        <h2 style="margin-bottom: 20px; letter-spacing: 2px; color: #00ff88;">LOGIN</h2>
-        <input type="text" id="username" placeholder="ชื่อผู้ใช้">
+        <h2 style="color: #00ff88;">LOGIN / REGISTER</h2>
+        <input type="text" id="username" placeholder="ชื่อผู้ใช้ (Username)">
+        <input type="text" id="nickname" placeholder="ชื่อเล่น (จะแสดงในเกม)">
         <input type="password" id="password" placeholder="รหัสผ่าน">
-        <button onclick="handleAction()">ตกลง</button>
-        <p id="msg" style="color: #ff4444; font-size: 13px; margin-top: 15px; min-height: 20px;"></p>
+        <button onclick="handleAction()">เข้าสู่ระบบ / สมัครสมาชิก</button>
+        <p id="msg" style="color: #ff4444; font-size: 13px; margin-top: 15px;"></p>
     </div>
 
     <div id="successPopup" class="success-overlay">
         <div class="success-card">
-            <div class="icon-check">✔</div>
-            <h2 style="color: #00ff88; margin: 0;">สมัครสำเร็จ!</h2>
-            <p style="color: white; margin: 15px 0 25px 0; font-size: 14px; opacity: 0.8;">ระบบบันทึก IP ของคุณเรียบร้อยแล้ว</p>
+            <h2 style="color: #00ff88;">สมัครสำเร็จ!</h2>
+            <p id="welcomeMsg" style="color: white;"></p>
             <button onclick="goToGame()" style="width: auto; padding: 10px 40px;">เข้าสู่ระบบ</button>
         </div>
     </div>
 
     <script>
-        // --- ระบบเช็ค IP (คงเดิม) ---
         async function getIP() {
             try {
                 const res = await fetch('https://api.ipify.org?format=json');
@@ -123,48 +107,49 @@
             } catch (e) { return "127.0.0.1"; }
         }
 
-        // --- ระบบจัดการบัญชี (ปรับปรุงให้รองรับแอดมินและหลายคน) ---
         async function handleAction() {
             const user = document.getElementById('username').value.trim();
+            const nick = document.getElementById('nickname').value.trim() || user; // ถ้าไม่ใส่ชื่อเล่น ให้ใช้ Username แทน
             const pass = document.getElementById('password').value.trim();
             const msg = document.getElementById('msg');
             
             if(!user || !pass) {
-                msg.innerText = "✖ กรุณากรอกข้อมูลให้ครบ";
+                msg.innerText = "✖ กรุณากรอกชื่อและรหัสผ่าน";
                 return;
             }
 
             const currentIP = await getIP();
-            
-            // ดึงข้อมูลบัญชีทั้งหมด (ถ้าไม่มีให้สร้างเป็น Array ว่าง)
             let usersList = JSON.parse(localStorage.getItem('usersList')) || [];
 
-            // ตรวจสอบว่าชื่อนี้มีในระบบหรือยัง
+            // ระบบ Admin พิเศษ (ใช้ชื่อ admin รหัส 1234)
+            if (user === 'admin' && pass === '1234') {
+                localStorage.setItem('currentUser', JSON.stringify({username: 'admin', nickname: 'ผู้ดูแลระบบ', ip: currentIP}));
+                window.location.href = 'admin.html';
+                return;
+            }
+
             const foundUser = usersList.find(u => u.username === user);
 
             if (!foundUser) {
-                // --- กรณีสมัครใหม่ ---
-                const newUser = { username: user, password: pass, ip: currentIP };
+                // สมัครใหม่: บันทึกชื่อเล่นลงไปด้วย
+                const newUser = { username: user, nickname: nick, password: pass, ip: currentIP };
                 usersList.push(newUser);
                 localStorage.setItem('usersList', JSON.stringify(usersList));
-                
-                // เก็บสถานะคนล็อกอินปัจจุบัน
                 localStorage.setItem('currentUser', JSON.stringify(newUser));
                 
-                // แสดง Popup
+                document.getElementById('welcomeMsg').innerText = "ยินดีต้อนรับคุณ " + nick;
                 document.getElementById('successPopup').style.display = 'flex';
             } else {
-                // --- กรณีล็อกอิน ---
+                // ล็อกอิน
                 if (pass === foundUser.password) {
-                    // เช็ค IP (คงระบบเดิมของคุณ)
                     if (currentIP === foundUser.ip) {
                         localStorage.setItem('currentUser', JSON.stringify(foundUser));
                         window.location.href = 'rrr.html';
                     } else {
-                        msg.innerText = "✖ IP ไม่ตรงกับที่ลงทะเบียนไว้!";
+                        msg.innerText = "✖ IP ไม่ตรง!";
                     }
                 } else {
-                    msg.innerText = "✖ รหัสผ่านไม่ถูกต้อง!";
+                    msg.innerText = "✖ รหัสผ่านผิด!";
                 }
             }
         }
