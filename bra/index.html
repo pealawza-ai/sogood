@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SOGOOD - LOGIN</title>
+    <title>SOGOOD - Kuromi Edition</title>
     <style>
-        /* --- ระบบพื้นหลังแยก PC และ Mobile (ตัวเดิมที่เคยชอบ) --- */
+        /* --- ระบบพื้นหลัง Kuromi แยก PC และ Mobile --- */
         body {
             margin: 0;
             padding: 0;
@@ -18,67 +18,82 @@
             background-position: center;
             background-size: cover;
             background-repeat: no-repeat;
+            transition: 0.5s;
         }
 
-        /* สำหรับคอมพิวเตอร์ (PC) */
+        /* สำหรับคอมพิวเตอร์ (PC) - รูป Kuromi แนวนอน */
         @media (min-width: 769px) {
             body {
-                background-image: url('https://wallpaperaccess.com/full/449171.jpg'); /* ใส่ลิงก์รูป PC ตรงนี้ */
+                background-image: url('https://wallpapercave.com/wp/wp11162386.jpg'); 
             }
         }
 
-        /* สำหรับมือถือ (Mobile) */
+        /* สำหรับมือถือ (Mobile) - รูป Kuromi แนวตั้ง */
         @media (max-width: 768px) {
             body {
-                background-image: url('https://images.wallpapersden.com/image/download/dark-aesthetic-minimalist_bmZpa2mUmZqaraWkpJRmbmdlrWZlbWU.jpg'); /* ใส่ลิงก์รูปมือถือตรงนี้ */
+                background-image: url('https://wallpapers.com/images/featured/kuromi-iphone-vcy9w2y108m2687u.jpg');
             }
         }
 
-        /* --- ดีไซน์กล่อง Login เดิม --- */
+        /* --- ดีไซน์กล่อง Login แบบ Glassmorphism --- */
         .login-container {
-            background: rgba(26, 26, 26, 0.85); /* โปร่งแสงนิดๆ ให้เห็นพื้นหลัง */
-            backdrop-filter: blur(10px);
+            background: rgba(15, 15, 15, 0.7);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 0 25px rgba(0,0,0,0.7);
+            border-radius: 30px;
+            box-shadow: 0 0 40px rgba(0,0,0,0.8);
             text-align: center;
             width: 320px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(162, 0, 255, 0.3); /* ขอบสีม่วงอ่อนๆ เข้ากับ Kuromi */
         }
 
-        h2 { color: #00ff88; letter-spacing: 2px; margin-bottom: 25px; }
+        h2 { 
+            color: #00ff88; 
+            letter-spacing: 3px; 
+            margin-bottom: 25px; 
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
 
         input {
             width: 100%;
-            padding: 12px;
+            padding: 13px;
             margin: 10px 0;
-            border-radius: 10px;
+            border-radius: 12px;
             border: 1px solid #444;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.6);
             color: white;
             box-sizing: border-box;
             outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            border-color: #a200ff;
+            box-shadow: 0 0 10px rgba(162, 0, 255, 0.3);
         }
 
         button {
             width: 100%;
-            padding: 12px;
+            padding: 13px;
             background: #00ff88;
             color: black;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             font-weight: bold;
             cursor: pointer;
             transition: 0.3s;
-            margin-top: 10px;
+            margin-top: 15px;
+            text-transform: uppercase;
         }
 
         button:hover {
             background: #00cc6e;
-            transform: scale(1.03);
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
         }
 
-        /* Popup แจ้งเตือนสวยๆ */
+        /* Popup แจ้งเตือนสำเร็จ */
         .success-overlay {
             display: none;
             position: fixed;
@@ -89,11 +104,12 @@
             align-items: center;
         }
         .success-card {
-            background: #1a1a1a;
+            background: #111;
             padding: 40px;
-            border-radius: 20px;
+            border-radius: 25px;
             border: 2px solid #00ff88;
             text-align: center;
+            box-shadow: 0 0 50px rgba(0, 255, 136, 0.2);
         }
     </style>
 </head>
@@ -101,23 +117,22 @@
 
     <div class="login-container">
         <h2>SOGOOD</h2>
-        <input type="text" id="username" placeholder="ชื่อผู้ใช้">
-        <input type="text" id="nickname" placeholder="ชื่อเล่น (จะแสดงในเกม)">
-        <input type="password" id="password" placeholder="รหัสผ่าน">
+        <input type="text" id="username" placeholder="Username">
+        <input type="text" id="nickname" placeholder="ชื่อเล่นในเกม">
+        <input type="password" id="password" placeholder="Password">
         <button onclick="handleAction()">ตกลง</button>
-        <p id="msg" style="color: #ff4444; font-size: 13px; margin-top: 15px;"></p>
+        <p id="msg" style="color: #ff4444; font-size: 13px; margin-top: 15px; min-height: 20px;"></p>
     </div>
 
     <div id="successPopup" class="success-overlay">
         <div class="success-card">
-            <h2 style="margin: 0 0 10px 0;">✔️ สำเร็จ</h2>
-            <p id="welcomeText" style="color: white; margin-bottom: 25px;"></p>
-            <button onclick="window.location.href='rrr.html'" style="width: auto; padding: 10px 40px;">เข้าสู่ระบบ</button>
+            <h2 style="margin: 0;">✔️ เรียบร้อย</h2>
+            <p id="welcomeText" style="color: white; margin: 20px 0 30px 0;"></p>
+            <button onclick="window.location.href='rrr.html'" style="width: auto; padding: 10px 40px;">เข้าสู่โลก Kuromi</button>
         </div>
     </div>
 
     <script>
-        // ระบบดึง IP (คงเดิม)
         async function getIP() {
             try {
                 const res = await fetch('https://api.ipify.org?format=json');
@@ -139,7 +154,7 @@
 
             const currentIP = await getIP();
 
-            // --- ระบบ Admin (admin/1234) ---
+            // ระบบ Admin
             if (user === 'admin' && pass === '1234') {
                 localStorage.setItem('currentUser', JSON.stringify({username: 'admin', nickname: 'ผู้ดูแลระบบ', ip: currentIP, role: 'admin'}));
                 window.location.href = 'admin.html';
@@ -164,10 +179,10 @@
                         localStorage.setItem('currentUser', JSON.stringify(foundUser));
                         window.location.href = 'rrr.html';
                     } else {
-                        msg.innerText = "✖ IP ไม่ตรงกับที่สมัครไว้!";
+                        msg.innerText = "✖ IP ไม่ตรงกับที่ลงทะเบียน!";
                     }
                 } else {
-                    msg.innerText = "✖ รหัสผ่านไม่ถูกต้อง!";
+                    msg.innerText = "✖ รหัสผ่านผิด!";
                 }
             }
         }
