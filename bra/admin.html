@@ -2,65 +2,141 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Control - Game Hub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOGOOD - Admin Dashboard</title>
     <style>
-        :root { --p: #ba59ff; --bg: #0b0b0e; }
-        body { background: var(--bg); color: white; font-family: sans-serif; padding: 20px; }
-        .admin-card { background: #16161d; padding: 25px; border-radius: 15px; border: 1px solid var(--p); margin-bottom: 20px; }
-        input, textarea { width: 100%; padding: 10px; margin: 10px 0; background: #000; border: 1px solid #333; color: white; border-radius: 5px; }
-        button { background: var(--p); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        h2 { border-left: 4px solid var(--p); padding-left: 10px; }
+        body {
+            background-color: #0a0a0a;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0; padding: 20px;
+        }
+        .admin-panel {
+            max-width: 900px;
+            margin: auto;
+            background: #151515;
+            border-radius: 20px;
+            border: 1px solid #00ff88;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.1);
+        }
+        .admin-header {
+            background: linear-gradient(90deg, #00ff88, #008f5d);
+            padding: 20px;
+            color: black;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .content { padding: 30px; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px; margin-bottom: 30px;
+        }
+        .stat-card {
+            background: #222;
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 5px solid #00ff88;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #1a1a1a;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+        th { background: #252525; color: #00ff88; }
+        .logout-btn {
+            background: black; color: white; border: none;
+            padding: 8px 15px; border-radius: 8px; cursor: pointer;
+        }
+        .del-btn {
+            background: #ff4444; border: none; color: white;
+            padding: 5px 10px; border-radius: 5px; cursor: pointer;
+        }
     </style>
 </head>
 <body>
-    <h1>🛠 ระบบควบคุมแอดมิน</h1>
 
-    <div class="admin-card">
-        <h2>🎮 ลงเกมใหม่</h2>
-        <input type="text" id="g-img" placeholder="URL รูปปกเกม">
-        <input type="text" id="g-name" placeholder="ชื่อเกม">
-        <textarea id="g-desc" placeholder="คำอธิบายเกม"></textarea>
-        <input type="text" id="g-ver" placeholder="เวอร์ชัน (เช่น v1.0.2)">
-        <input type="text" id="g-link" placeholder="ลิงก์เกม (URL ลับ)">
-        <button onclick="saveGame()">🚀 เอาเกมลงระบบ</button>
-    </div>
+    <div class="admin-panel">
+        <div class="admin-header">
+            <h2 style="margin:0;">SYSTEM CONTROL (ADMIN)</h2>
+            <button class="logout-btn" onclick="logout()">LOGOUT</button>
+        </div>
+        
+        <div class="content">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <small>จำนวนผู้ใช้ทั้งหมด</small>
+                    <h2 id="totalUsers">0</h2>
+                </div>
+                <div class="stat-card">
+                    <small>สถานะเซิร์ฟเวอร์</small>
+                    <h2 style="color: #00ff88;">ONLINE</h2>
+                </div>
+            </div>
 
-    <div class="admin-card">
-        <h2>📢 ประกาศข่าวสาร</h2>
-        <input type="text" id="n-img" placeholder="URL รูปภาพข่าว (ไปเฉพาะหน้าข่าวสาร)">
-        <textarea id="n-text" placeholder="ข้อความประกาศ (ไปทั้งข่าวสารด่วนและหน้าข่าว)"></textarea>
-        <button onclick="saveNews()">🔔 ส่งประกาศหาทุกคน</button>
+            <h3>รายชื่อสมาชิก</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ชื่อเล่น</th>
+                        <th>ชื่อผู้ใช้</th>
+                        <th>IP Address</th>
+                        <th>จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody id="userTable">
+                    </tbody>
+            </table>
+        </div>
     </div>
 
     <script>
-        function saveGame() {
-            const game = {
-                img: document.getElementById('g-img').value,
-                name: document.getElementById('g-name').value,
-                desc: document.getElementById('g-desc').value,
-                ver: document.getElementById('g-ver').value,
-                link: document.getElementById('g-link').value
-            };
-            let games = JSON.parse(localStorage.getItem('all_games') || "[]");
-            games.push(game);
-            localStorage.setItem('all_games', JSON.stringify(games));
-            alert('ลงเกมเรียบร้อย!');
+        // --- ระบบเช็คสิทธิ์แบบเข้มงวด ---
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        if (!user || user.username !== 'admin') {
+            document.body.innerHTML = "<h1 style='color:red; text-align:center; margin-top:50px;'>⛔ คุณไม่มีสิทธิ์เข้าถึงหน้านี้!</h1>";
+            setTimeout(() => window.location.href = 'index.html', 2000);
         }
 
-        function saveNews() {
-            const newsText = document.getElementById('n-text').value;
-            const newsImg = document.getElementById('n-img').value;
+        function loadData() {
+            const list = JSON.parse(localStorage.getItem('usersList')) || [];
+            document.getElementById('totalUsers').innerText = list.length;
             
-            // ส่งไปข่าวสารด่วน
-            localStorage.setItem('urgent_msg', newsText);
-            
-            // ส่งไปหน้าข่าวสาร (Notification)
-            let newsList = JSON.parse(localStorage.getItem('all_notifications') || "[]");
-            newsList.unshift({ text: newsText, img: newsImg, time: new Date().toLocaleString() });
-            localStorage.setItem('all_notifications', JSON.stringify(newsList));
-            
-            alert('ส่งข่าวสารแล้ว!');
+            const table = document.getElementById('userTable');
+            table.innerHTML = list.map((u, index) => `
+                <tr>
+                    <td>${u.nickname}</td>
+                    <td>${u.username}</td>
+                    <td style="font-family: monospace; color: #888;">${u.ip}</td>
+                    <td><button class="del-btn" onclick="deleteUser(${index})">ลบ</button></td>
+                </tr>
+            `).join('');
         }
+
+        function deleteUser(index) {
+            if(confirm('ยืนยันที่จะลบผู้ใช้นี้?')) {
+                let list = JSON.parse(localStorage.getItem('usersList'));
+                list.splice(index, 1);
+                localStorage.setItem('usersList', JSON.stringify(list));
+                loadData();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'index.html';
+        }
+
+        loadData();
     </script>
 </body>
 </html>
