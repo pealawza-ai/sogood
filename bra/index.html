@@ -3,97 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SOGOOD - Login & Register</title>
+    <title>SOGOOD - Login</title>
     <style>
-        body {
-            background-color: #0d0d0d;
-            color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-        }
+        /* --- ดีไซน์เดิมของคุณ (รักษาไว้ทั้งหมด) --- */
+        body { background-color: #0d0d0d; color: white; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
+        .login-container { background: #1a1a1a; padding: 30px; border-radius: 20px; box-shadow: 0 0 25px rgba(0,0,0,0.7); text-align: center; width: 320px; border: 1px solid #333; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #444; background: #252525; color: white; box-sizing: border-box; outline: none; }
+        button { width: 100%; padding: 12px; background: #00ff88; color: black; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        button:hover { background: #00cc6e; transform: scale(1.03); }
 
-        .login-container {
-            background: #1a1a1a;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 0 25px rgba(0,0,0,0.7);
-            text-align: center;
-            width: 320px;
-            border: 1px solid #333;
-        }
-
-        input {
-            width: 100%;
-            padding: 12px;
-            margin: 8px 0;
-            border-radius: 10px;
-            border: 1px solid #444;
-            background: #252525;
-            color: white;
-            box-sizing: border-box;
-            outline: none;
-        }
-
-        button {
-            width: 100%;
-            padding: 12px;
-            background: #00ff88;
-            color: black;
-            border: none;
-            border-radius: 10px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-            margin-top: 10px;
-        }
-
-        button:hover {
-            background: #00cc6e;
-            transform: scale(1.03);
-        }
-
-        /* UI แจ้งเตือนสำเร็จ */
-        .success-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.92);
-            backdrop-filter: blur(10px);
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .success-card {
-            background: #111;
-            border: 2px solid #00ff88;
-            padding: 40px;
-            border-radius: 30px;
-            text-align: center;
-            box-shadow: 0 0 50px rgba(0,255,136,0.5);
-        }
+        /* --- UI แจ้งเตือนสำเร็จที่เพิ่มใหม่ --- */
+        .success-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); backdrop-filter: blur(10px); z-index: 9999; justify-content: center; align-items: center; }
+        .success-card { background: #111; border: 2px solid #00ff88; padding: 40px; border-radius: 30px; text-align: center; box-shadow: 0 0 50px rgba(0,255,136,0.5); }
     </style>
 </head>
 <body>
 
     <div class="login-container">
-        <h2 style="color: #00ff88;">LOGIN / REGISTER</h2>
+        <h2 style="color: #00ff88;">SOGOOD</h2>
         <input type="text" id="username" placeholder="ชื่อผู้ใช้ (Username)">
-        <input type="text" id="nickname" placeholder="ชื่อเล่น (จะแสดงในเกม)">
+        <input type="text" id="nickname" placeholder="ชื่อเล่น (ถ้าไม่ใส่จะใช้ Username)">
         <input type="password" id="password" placeholder="รหัสผ่าน">
-        <button onclick="handleAction()">เข้าสู่ระบบ / สมัครสมาชิก</button>
+        <button onclick="handleAction()">ตกลง</button>
         <p id="msg" style="color: #ff4444; font-size: 13px; margin-top: 15px;"></p>
     </div>
 
     <div id="successPopup" class="success-overlay">
         <div class="success-card">
-            <h2 style="color: #00ff88;">สมัครสำเร็จ!</h2>
-            <p id="welcomeMsg" style="color: white;"></p>
+            <h2 style="color: #00ff88;">✔️ สมัครสำเร็จ!</h2>
+            <p id="welcomeText" style="color: white;"></p>
             <button onclick="goToGame()" style="width: auto; padding: 10px 40px;">เข้าสู่ระบบ</button>
         </div>
     </div>
@@ -109,35 +47,35 @@
 
         async function handleAction() {
             const user = document.getElementById('username').value.trim();
-            const nick = document.getElementById('nickname').value.trim() || user; // ถ้าไม่ใส่ชื่อเล่น ให้ใช้ Username แทน
+            const nick = document.getElementById('nickname').value.trim() || user;
             const pass = document.getElementById('password').value.trim();
             const msg = document.getElementById('msg');
             
             if(!user || !pass) {
-                msg.innerText = "✖ กรุณากรอกชื่อและรหัสผ่าน";
+                msg.innerText = "✖ กรุณากรอกข้อมูลให้ครบ";
                 return;
             }
 
             const currentIP = await getIP();
-            let usersList = JSON.parse(localStorage.getItem('usersList')) || [];
 
-            // ระบบ Admin พิเศษ (ใช้ชื่อ admin รหัส 1234)
-            if (user === 'admin' && pass === '1234') {
+            // --- ระบบ Admin (ล็อกไว้ให้ใช้ได้เสมอ) ---
+            if (user === 'admin' && pass === '21/7/2568') {
                 localStorage.setItem('currentUser', JSON.stringify({username: 'admin', nickname: 'ผู้ดูแลระบบ', ip: currentIP}));
                 window.location.href = 'admin.html';
                 return;
             }
 
+            let usersList = JSON.parse(localStorage.getItem('usersList')) || [];
             const foundUser = usersList.find(u => u.username === user);
 
             if (!foundUser) {
-                // สมัครใหม่: บันทึกชื่อเล่นลงไปด้วย
+                // สมัครใหม่
                 const newUser = { username: user, nickname: nick, password: pass, ip: currentIP };
                 usersList.push(newUser);
                 localStorage.setItem('usersList', JSON.stringify(usersList));
                 localStorage.setItem('currentUser', JSON.stringify(newUser));
                 
-                document.getElementById('welcomeMsg').innerText = "ยินดีต้อนรับคุณ " + nick;
+                document.getElementById('welcomeText').innerText = "ยินดีต้อนรับคุณ " + nick;
                 document.getElementById('successPopup').style.display = 'flex';
             } else {
                 // ล็อกอิน
@@ -146,17 +84,15 @@
                         localStorage.setItem('currentUser', JSON.stringify(foundUser));
                         window.location.href = 'rrr.html';
                     } else {
-                        msg.innerText = "✖ IP ไม่ตรง!";
+                        msg.innerText = "✖ IP ของคุณไม่ตรงกับที่สมัครไว้!";
                     }
                 } else {
-                    msg.innerText = "✖ รหัสผ่านผิด!";
+                    msg.innerText = "✖ รหัสผ่านไม่ถูกต้อง!";
                 }
             }
         }
 
-        function goToGame() {
-            window.location.href = 'rrr.html';
-        }
+        function goToGame() { window.location.href = 'rrr.html'; }
     </script>
 </body>
 </html>
