@@ -3,139 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SOGOOD - Admin Dashboard</title>
+    <title>SOGOOD - Admin</title>
     <style>
-        body {
-            background-color: #0a0a0a;
-            color: #e0e0e0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0; padding: 20px;
-        }
-        .admin-panel {
-            max-width: 900px;
-            margin: auto;
-            background: #151515;
-            border-radius: 20px;
-            border: 1px solid #00ff88;
-            overflow: hidden;
-            box-shadow: 0 0 30px rgba(0, 255, 136, 0.1);
-        }
-        .admin-header {
-            background: linear-gradient(90deg, #00ff88, #008f5d);
-            padding: 20px;
-            color: black;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .content { padding: 30px; }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px; margin-bottom: 30px;
-        }
-        .stat-card {
-            background: #222;
-            padding: 20px;
-            border-radius: 15px;
-            border-left: 5px solid #00ff88;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: #1a1a1a;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        th, td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid #333;
-        }
-        th { background: #252525; color: #00ff88; }
-        .logout-btn {
-            background: black; color: white; border: none;
-            padding: 8px 15px; border-radius: 8px; cursor: pointer;
-        }
-        .del-btn {
-            background: #ff4444; border: none; color: white;
-            padding: 5px 10px; border-radius: 5px; cursor: pointer;
-        }
+        body { background-color: #0a0a0a; color: white; font-family: 'Segoe UI', sans-serif; padding: 20px; }
+        .admin-box { max-width: 800px; margin: auto; background: #151515; border-radius: 20px; border: 1px solid #00ff88; overflow: hidden; }
+        .admin-nav { background: #00ff88; color: black; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; }
+        .table-area { padding: 20px; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td { padding: 12px; border-bottom: 1px solid #333; }
+        th { color: #00ff88; }
+        .btn-del { background: #ff4444; border: none; color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="admin-panel">
-        <div class="admin-header">
-            <h2 style="margin:0;">SYSTEM CONTROL (ADMIN)</h2>
-            <button class="logout-btn" onclick="logout()">LOGOUT</button>
+    <div class="admin-box">
+        <div class="admin-nav">
+            <h2 style="margin:0;">SYSTEM ADMIN</h2>
+            <button onclick="logout()" style="background:black; color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer;">LOGOUT</button>
         </div>
-        
-        <div class="content">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <small>จำนวนผู้ใช้ทั้งหมด</small>
-                    <h2 id="totalUsers">0</h2>
-                </div>
-                <div class="stat-card">
-                    <small>สถานะเซิร์ฟเวอร์</small>
-                    <h2 style="color: #00ff88;">ONLINE</h2>
-                </div>
-            </div>
-
-            <h3>รายชื่อสมาชิก</h3>
+        <div class="table-area">
+            <h3>รายชื่อสมาชิกทั้งหมด</h3>
             <table>
                 <thead>
                     <tr>
                         <th>ชื่อเล่น</th>
-                        <th>ชื่อผู้ใช้</th>
-                        <th>IP Address</th>
+                        <th>User</th>
+                        <th>IP</th>
                         <th>จัดการ</th>
                     </tr>
                 </thead>
-                <tbody id="userTable">
-                    </tbody>
+                <tbody id="userTable"></tbody>
             </table>
         </div>
     </div>
 
     <script>
-        // --- ระบบเช็คสิทธิ์แบบเข้มงวด ---
         const user = JSON.parse(localStorage.getItem('currentUser'));
-        if (!user || user.username !== 'admin') {
-            document.body.innerHTML = "<h1 style='color:red; text-align:center; margin-top:50px;'>⛔ คุณไม่มีสิทธิ์เข้าถึงหน้านี้!</h1>";
-            setTimeout(() => window.location.href = 'index.html', 2000);
+        // เช็คสิทธิ์เข้มงวด
+        if (!user || user.role !== 'admin') {
+            alert("คุณไม่มีสิทธิ์!"); window.location.href = 'index.html';
         }
 
         function loadData() {
             const list = JSON.parse(localStorage.getItem('usersList')) || [];
-            document.getElementById('totalUsers').innerText = list.length;
-            
-            const table = document.getElementById('userTable');
-            table.innerHTML = list.map((u, index) => `
+            document.getElementById('userTable').innerHTML = list.map((u, i) => `
                 <tr>
                     <td>${u.nickname}</td>
                     <td>${u.username}</td>
-                    <td style="font-family: monospace; color: #888;">${u.ip}</td>
-                    <td><button class="del-btn" onclick="deleteUser(${index})">ลบ</button></td>
+                    <td style="color:#888;">${u.ip}</td>
+                    <td><button class="btn-del" onclick="delUser(${i})">ลบ</button></td>
                 </tr>
             `).join('');
         }
 
-        function deleteUser(index) {
-            if(confirm('ยืนยันที่จะลบผู้ใช้นี้?')) {
+        function delUser(i) {
+            if(confirm('ลบผู้ใช้นี้?')) {
                 let list = JSON.parse(localStorage.getItem('usersList'));
-                list.splice(index, 1);
+                list.splice(i, 1);
                 localStorage.setItem('usersList', JSON.stringify(list));
                 loadData();
             }
         }
-
-        function logout() {
-            localStorage.removeItem('currentUser');
-            window.location.href = 'index.html';
-        }
-
+        function logout() { localStorage.removeItem('currentUser'); window.location.href = 'index.html'; }
         loadData();
     </script>
 </body>
