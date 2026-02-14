@@ -5,27 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SOGOOD - Dashboard</title>
     <style>
-        /* --- ดีไซน์เดิมที่รักษาไว้ --- */
+        /* --- คงดีไซน์หลักของคุณไว้ --- */
         body {
             background-color: #0d0d0d;
             color: #e0e0e0;
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+            overflow-x: hidden;
         }
 
+        /* แถบเมนูด้านบน */
         .navbar {
             background: #1a1a1a;
-            padding: 15px 30px;
+            padding: 15px 25px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid #333;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
-        .logo { color: #00ff88; font-weight: bold; font-size: 1.5rem; }
+        .logo { color: #00ff88; font-weight: bold; font-size: 1.5rem; letter-spacing: 2px; }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
 
         .nickname-badge {
             background: #252525;
@@ -36,6 +44,43 @@
             font-weight: bold;
         }
 
+        /* --- ส่วนการแจ้งเตือนแบบ "เลื่อนได้" (Scrollable) --- */
+        .noti-container {
+            max-width: 500px;
+            margin: 20px auto;
+            background: #1a1a1a;
+            border-radius: 15px;
+            border: 1px solid #333;
+            overflow: hidden;
+        }
+
+        .noti-header {
+            background: #252525;
+            padding: 15px;
+            border-bottom: 1px solid #444;
+            color: #00ff88;
+            font-weight: bold;
+        }
+
+        .noti-list {
+            max-height: 300px; /* ความสูงที่ยอมให้เห็น ถ้าเกินจะเลื่อนได้ */
+            overflow-y: auto;  /* ทำให้เลื่อนขึ้น-ลงได้ */
+            padding: 15px;
+        }
+
+        /* แต่งแถบเลื่อน (Scrollbar) ให้เข้ากับธีม */
+        .noti-list::-webkit-scrollbar { width: 5px; }
+        .noti-list::-webkit-scrollbar-thumb { background: #00ff88; border-radius: 10px; }
+
+        .noti-item {
+            background: #222;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            border-left: 4px solid #00ff88;
+        }
+
+        /* --- ปุ่ม Logout และ Modal เดิม --- */
         .logout-btn {
             background: #ff4444;
             color: white;
@@ -46,13 +91,12 @@
             font-weight: bold;
         }
 
-        /* Modal Logout */
         .modal-overlay {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85);
-            z-index: 1000;
+            z-index: 2000;
             justify-content: center;
             align-items: center;
         }
@@ -69,54 +113,65 @@
 
     <nav class="navbar">
         <div class="logo">SOGOOD</div>
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <span class="nickname-badge" id="displayNickname">กำลังโหลด...</span>
+        <div class="user-info">
+            <span class="nickname-badge" id="displayNickname">...</span>
             <button class="logout-btn" onclick="showModal()">LOGOUT</button>
         </div>
     </nav>
 
-    <div style="padding: 40px; text-align: center;">
+    <div style="padding: 20px; text-align: center;">
         <h1 id="welcomeGreeting">ยินดีต้อนรับ</h1>
-        <p>คุณกำลังใช้งานระบบที่ปลอดภัย</p>
+        
+        <div class="noti-container">
+            <div class="noti-header">การแจ้งเตือนระบบ</div>
+            <div class="noti-list" id="notiList">
+                <div class="noti-item">ยินดีต้อนรับคุณเข้าสู่ระบบ SOGOOD</div>
+                <div class="noti-item">ระบบบันทึก IP ของคุณเรียบร้อยแล้ว</div>
+                <div class="noti-item">คุณสามารถตั้งชื่อเล่นได้ที่หน้าสมัครสมาชิก</div>
+                <div class="noti-item">แจ้งเตือน: บัญชีของคุณมีความปลอดภัยสูง</div>
+                <div class="noti-item">อัปเดต: เพิ่มระบบเลื่อนดูการแจ้งเตือนแล้ว</div>
+                </div>
+        </div>
     </div>
 
     <div id="logoutModal" class="modal-overlay">
         <div class="modal-card">
-            <h3 style="color: white;">ออกจากระบบ?</h3>
+            <h3 style="color: white;">ยืนยันการออกจากระบบ?</h3>
             <div style="margin-top: 20px;">
-                <button onclick="confirmLogout()" style="background:#ff4444; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">ยืนยัน</button>
-                <button onclick="hideModal()" style="background:#333; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">ยกเลิก</button>
+                <button onclick="confirmLogout()" style="background:#ff4444; color:white; border:none; padding:10px 25px; border-radius:10px; cursor:pointer; font-weight:bold;">ออกจากระบบ</button>
+                <button onclick="hideModal()" style="background:#333; color:white; border:none; padding:10px 25px; border-radius:10px; cursor:pointer; margin-left:10px;">ยกเลิก</button>
             </div>
         </div>
     </div>
 
     <script>
-        // --- ฟังก์ชันดึงชื่อมาโชว์ (จุดที่แก้ไข) ---
-        function loadUserData() {
+        // --- ส่วนที่ 1: ดึงชื่อเล่นมาแสดง (ตัวแก้ไข) ---
+        function loadProfile() {
             const data = localStorage.getItem('currentUser');
             if (!data) {
-                window.location.href = 'index.html';
+                window.location.href = 'index.html'; // ถ้าไม่ได้ล็อกอินให้ดีดออก
                 return;
             }
 
             const user = JSON.parse(data);
-            // ดึง nickname มาแสดง ถ้าไม่มีให้ใช้ username
-            const name = user.nickname || user.username;
+            // ถ้ามี nickname ให้ใช้ nickname ถ้าไม่มีให้ใช้ username
+            const nameToShow = user.nickname || user.username;
             
-            document.getElementById('displayNickname').innerText = name;
-            document.getElementById('welcomeGreeting').innerText = "ยินดีต้อนรับคุณ " + name;
+            document.getElementById('displayNickname').innerText = nameToShow;
+            document.getElementById('welcomeGreeting').innerText = "สวัสดีคุณ " + nameToShow;
         }
 
-        // --- ระบบ Logout เดิม ---
+        // --- ส่วนที่ 2: ระบบ Logout เดิม ---
         function showModal() { document.getElementById('logoutModal').style.display = 'flex'; }
         function hideModal() { document.getElementById('logoutModal').style.display = 'none'; }
+        
         function confirmLogout() {
-            localStorage.removeItem('currentUser');
+            localStorage.removeItem('currentUser'); // ลบแค่สถานะการเข้าใช้งานปัจจุบัน
             window.location.href = 'index.html';
         }
 
-        // รันฟังก์ชันเมื่อโหลดหน้าเว็บ
-        loadUserData();
+        // รันคำสั่งเมื่อโหลดหน้า
+        loadProfile();
     </script>
 </body>
 </html>
