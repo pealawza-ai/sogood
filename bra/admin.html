@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Control - Game Hub</title>
+    <style>
+        :root { --p: #ba59ff; --bg: #0b0b0e; }
+        body { background: var(--bg); color: white; font-family: sans-serif; padding: 20px; }
+        .admin-card { background: #16161d; padding: 25px; border-radius: 15px; border: 1px solid var(--p); margin-bottom: 20px; }
+        input, textarea { width: 100%; padding: 10px; margin: 10px 0; background: #000; border: 1px solid #333; color: white; border-radius: 5px; }
+        button { background: var(--p); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        h2 { border-left: 4px solid var(--p); padding-left: 10px; }
+    </style>
+</head>
+<body>
+    <h1>🛠 ระบบควบคุมแอดมิน</h1>
+
+    <div class="admin-card">
+        <h2>🎮 ลงเกมใหม่</h2>
+        <input type="text" id="g-img" placeholder="URL รูปปกเกม">
+        <input type="text" id="g-name" placeholder="ชื่อเกม">
+        <textarea id="g-desc" placeholder="คำอธิบายเกม"></textarea>
+        <input type="text" id="g-ver" placeholder="เวอร์ชัน (เช่น v1.0.2)">
+        <input type="text" id="g-link" placeholder="ลิงก์เกม (URL ลับ)">
+        <button onclick="saveGame()">🚀 เอาเกมลงระบบ</button>
+    </div>
+
+    <div class="admin-card">
+        <h2>📢 ประกาศข่าวสาร</h2>
+        <input type="text" id="n-img" placeholder="URL รูปภาพข่าว (ไปเฉพาะหน้าข่าวสาร)">
+        <textarea id="n-text" placeholder="ข้อความประกาศ (ไปทั้งข่าวสารด่วนและหน้าข่าว)"></textarea>
+        <button onclick="saveNews()">🔔 ส่งประกาศหาทุกคน</button>
+    </div>
+
+    <script>
+        function saveGame() {
+            const game = {
+                img: document.getElementById('g-img').value,
+                name: document.getElementById('g-name').value,
+                desc: document.getElementById('g-desc').value,
+                ver: document.getElementById('g-ver').value,
+                link: document.getElementById('g-link').value
+            };
+            let games = JSON.parse(localStorage.getItem('all_games') || "[]");
+            games.push(game);
+            localStorage.setItem('all_games', JSON.stringify(games));
+            alert('ลงเกมเรียบร้อย!');
+        }
+
+        function saveNews() {
+            const newsText = document.getElementById('n-text').value;
+            const newsImg = document.getElementById('n-img').value;
+            
+            // ส่งไปข่าวสารด่วน
+            localStorage.setItem('urgent_msg', newsText);
+            
+            // ส่งไปหน้าข่าวสาร (Notification)
+            let newsList = JSON.parse(localStorage.getItem('all_notifications') || "[]");
+            newsList.unshift({ text: newsText, img: newsImg, time: new Date().toLocaleString() });
+            localStorage.setItem('all_notifications', JSON.stringify(newsList));
+            
+            alert('ส่งข่าวสารแล้ว!');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat - Game Hub</title>
+    <style>
+        :root { 
+            --p: #ba59ff; --bg: #0b0b0e; --glass: rgba(255, 255, 255, 0.08);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        body { margin: 0; background: var(--bg); color: white; font-family: 'Kanit', sans-serif; }
+
+        /* --- แก้ไข Navbar ให้โปรไฟล์อยู่ขวาและไม่ทับซ้อน --- */
+        .nav-bar { 
+            height:65px; background: rgba(0,0,0,0.95); display:flex; 
+            align-items:center; padding:0 25px; border-bottom: 1px solid var(--glass); 
+            position:sticky; top:0; z-index:2000; 
+        }
+        .nav-left { display:flex; gap:20px; flex: 1; align-items: center; }
+        .nav-link { color:#888; text-decoration:none; font-size:14px; transition: var(--transition); display: flex; align-items: center; gap: 5px; }
+        .nav-link:hover { color: var(--p); }
+        .nav-link.active { color:var(--p); font-weight: bold; }
+        
+        /* จัดวางโปรไฟล์และสถานะแชทให้อยู่ฝั่งขวา */
+        .nav-right { display: flex; align-items: center; gap: 15px; }
+        .chat-status { font-size: 11px; text-align: right; color: #777; line-height: 1.2; border-right: 1px solid #333; padding-right: 15px; }
+        
+        .u-profile { 
+            display:flex; align-items:center; gap:10px; background: var(--glass); 
+            padding: 5px 12px; border-radius: 50px; cursor:pointer; 
+            transition: var(--transition); border: 1px solid transparent; 
+        }
+        .u-profile:hover { border-color: var(--p); background: rgba(186,89,255,0.1); }
+        .u-avatar-nav { width:30px; height:30px; border-radius:50%; border:2px solid var(--p); object-fit:cover; }
+
+        /* ส่วนเนื้อหาแชท */
+        .chat-container { padding: 30px; }
+        .friend-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+        .line-deco { width: 4px; height: 24px; background: var(--p); border-radius: 2px; }
+        
+        .btn-group { display: flex; gap: 10px; }
+        .btn { padding: 12px 25px; border-radius: 12px; border: none; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; }
+        .btn-green { background: #2ecc71; }
+        .btn-purple { background: var(--p); }
+        .btn:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+    <nav class="nav-bar">
+        <div class="nav-left">
+            <a href="rrr.html" class="nav-link">🎮 เล่นเกม</a>
+            <a href="chat.html" class="nav-link active">💬 แชท</a>
+            <a href="news.html" class="nav-link">🔔 ข่าวสาร</a>
+        </div>
+        
+        <div class="nav-right">
+            <div class="chat-status">
+                <span style="color: var(--p); font-weight: bold;">ไม่มีแชทล่าสุด</span><br>
+                <span>รอข้อความ...</span>
+            </div>
+            <div class="u-profile" onclick="window.location.href='rrr.html?openSettings=true'">
+                <span id="nav-nick">นน</span>
+                <img id="nav-img" class="u-avatar-nav" src="https://i.ibb.co/vz6C89Y/kuromi.png">
+            </div>
+        </div>
+    </nav>
+
+    <div class="chat-container">
+        <div class="friend-header">
+            <div class="line-deco"></div>
+            <h2 style="margin:0;">เพื่อนและกลุ่ม <span style="color:var(--p); opacity:0.6;">(0)</span></h2>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-green"><span>+</span> เพิ่มเพื่อน</button>
+            <button class="btn btn-purple">👥 สร้างกลุ่ม</button>
+        </div>
+
+        <p style="text-align:center; color:#444; margin-top:100px;">ยังไม่มีรายชื่อเพื่อนหรือกลุ่ม</p>
+    </div>
+
+    <script>
+        // โหลดข้อมูลโปรไฟล์จากระบบหลัก
+        const uID = localStorage.getItem('lastLogin') || "User";
+        window.onload = () => {
+            document.getElementById('nav-nick').innerText = localStorage.getItem(uID + "_nick") || "นน";
+            document.getElementById('nav-img').src = localStorage.getItem(uID + "_img") || "https://i.ibb.co/vz6C89Y/kuromi.png";
+        };
+    </script>
+</body>
+</html>

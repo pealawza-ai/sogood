@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report System</title>
+    <style>
+        body { background: #0b0b0e; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .report-box { background: #16161d; padding: 25px; border-radius: 20px; border: 1px solid red; width: 90%; max-width: 400px; }
+        select, textarea, input { width: 100%; padding: 12px; margin-top: 10px; background: #000; border: 1px solid #333; color: white; border-radius: 8px; box-sizing: border-box; }
+        .btn-send { width: 100%; background: red; color: white; border: none; padding: 15px; border-radius: 8px; font-weight: bold; margin-top: 20px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="report-box">
+        <h2 style="color:red; text-align:center; margin-top:0;">🚩 รายงานผู้กระทำผิด</h2>
+        <label style="font-size:12px; color:#888;">เลือกชื่อผู้เล่นในระบบ:</label>
+        <select id="target-user"><option value="">-- เลือกรายชื่อ --</option></select>
+        <textarea id="reason" rows="3" placeholder="ระบุเหตุผล..."></textarea>
+        <input type="text" id="evidence" placeholder="ลิงก์รูปภาพหลักฐาน (URL)">
+        <button class="btn-send" onclick="sendReport()">ส่งข้อมูลให้แอดมิน</button>
+        <button onclick="location.href='rrr.html'" style="width:100%; background:none; border:none; color:#555; margin-top:10px; cursor:pointer;">ยกเลิก</button>
+    </div>
+
+    <script>
+        function loadUsers() {
+            const select = document.getElementById('target-user');
+            for (let i = 0; i < localStorage.length; i++) {
+                let key = localStorage.key(i);
+                if (!key.includes('_') && key !== "lastLogin") {
+                    let opt = document.createElement('option');
+                    opt.value = key; opt.innerText = key;
+                    select.appendChild(opt);
+                }
+            }
+        }
+        function sendReport() {
+            const target = document.getElementById('target-user').value;
+            if(!target) return alert("กรุณาเลือกชื่อ!");
+            let reports = JSON.parse(localStorage.getItem("admin_reports") || "[]");
+            reports.push({ from: localStorage.getItem('lastLogin'), target, reason: document.getElementById('reason').value, time: new Date().toLocaleString() });
+            localStorage.setItem("admin_reports", JSON.stringify(reports));
+            alert("✅ รายงานสำเร็จ!"); location.href = 'rrr.html';
+        }
+        loadUsers();
+    </script>
+</body>
+</html>

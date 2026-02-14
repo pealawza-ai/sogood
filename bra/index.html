@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Hub - Entry</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
+    <style>
+        :root { --primary: #ba59ff; --dark: #111; }
+        body { margin: 0; height: 100vh; background: linear-gradient(135deg, #2d004b 0%, #1a1a2e 50%, #4834d4 100%); display: flex; justify-content: center; align-items: center; font-family: 'Segoe UI', sans-serif; color: white; overflow: hidden; }
+        .card { background: rgba(0, 0, 0, 0.7); padding: 40px; border-radius: 30px; border: 1px solid var(--primary); width: 340px; text-align: center; backdrop-filter: blur(10px); }
+        .input-field { width: 100%; padding: 12px; border-radius: 12px; border: none; margin-bottom: 15px; box-sizing: border-box; font-weight: bold; }
+        .btn { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn:hover { transform: scale(1.05); filter: brightness(1.2); }
+        .error-msg { color: #ff7675; font-size: 13px; margin-bottom: 10px; display: none; }
+        .preview-img { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--primary); cursor: pointer; margin-bottom: 15px; }
+        #crop-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; background: #222; padding: 20px; border-radius: 20px; border: 1px solid var(--primary); }
+    </style>
+</head>
+<body>
+    <div id="crop-modal">
+        <div id="crop-area"></div>
+        <button class="btn" onclick="saveCrop()">DONE</button>
+    </div>
+
+    <div class="card">
+        <h2 id="title">WELCOME</h2>
+        <div id="reg-area" style="display:none">
+            <img id="p-preview" src="https://i.ibb.co/vz6C89Y/kuromi.png" class="preview-img" onclick="document.getElementById('p-input').click()">
+            <input type="file" id="p-input" hidden accept="image/*" onchange="initCrop(this)">
+        </div>
+        <input type="text" id="u" class="input-field" placeholder="USERNAME">
+        <input type="password" id="p" class="input-field" placeholder="PASSWORD">
+        <div id="err" class="error-msg"></div>
+        <button class="btn" onclick="doAuth()">GO!</button>
+        <p onclick="toggleReg()" id="toggle-txt" style="cursor:pointer; font-size:12px; margin-top:15px; color:#aaa;">ยังไม่มีบัญชี? สมัครสมาชิก</p>
+        <div id="ip-stat" style="font-size: 10px; color: #555; margin-top: 10px;">Checking security...</div>
+    </div>
+
+    <script>
+        let isR = false; let finalImg = ""; let croppie;
+        let currentVisitorIP = "";
+
+        async function fetchIP() {
+            try {
+                const res = await fetch('https://api.ipify.org?format=json');
+                const data = await res.json();
+                currentVisitorIP = data.ip;
+                document.getElementById('ip-stat').innerText = "Safe Connection";
+            } catch (e) { document.getElementById('ip-stat').innerText = "Security Check Offline"; }
+        }
+        fetchIP();
+
+        function toggleReg() { 
+            isR = !isR; 
+            document.getElementById('title').innerText = isR ? 'REGISTER' : 'WELCOME';
+            document.getElementById('reg-area').style.display = isR ? 'block' : 'none';
+            document.getElementById('toggle-txt').innerText = isR ? 'มีบัญชีแล้ว? เข้าสู่ระบบ' : 'ยังไม่มีบัญชี? สมัครสมาชิก';
+        }
+
+        function initCrop(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    document.getElementById('crop-modal').style.display='block';
+                    if(croppie) croppie.destroy();
+                    croppie = new Croppie(document.getElementById('crop-area'), { viewport:{width:150, height:150, type:'circle'}, boundary:{width:250, height:250} });
+                    croppie.bind({url: e.target.result});
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function saveCrop() {
+            croppie.result('base64').then(res => { finalImg = res; document.getElementById('p-preview').src = res; document.getElementById('crop-modal').style.display='none'; });
+        }
+
+        function doAuth() {
+            const u = document.getElementById('u').value.trim();
+            const p = document.getElementById('p').value.trim();
+            const err = document.getElementById('err');
+            if(!u || !p) { err.innerText="⚠️ กรุณากรอกข้อมูล"; err.style.display='block'; return; }
+            
+            const savedIP = localStorage.getItem(u + "_ip");
+
+            if(isR) {
+                localStorage.setItem(u, p);
+                localStorage.setItem(u+"_img", finalImg || "https://i.ibb.co/vz6C89Y/kuromi.png");
+                localStorage.setItem(u+"_ip", currentVisitorIP);
+                alert("สมัครสำเร็จ!"); toggleReg();
+            } else {
+                const banUntil = localStorage.getItem(u+"_ban_until");
+                if(localStorage.getItem(u+"_status") === "banned" && Date.now() < banUntil) {
+                    err.innerText = `❌ บัญชีถูกระงับ! เหลืออีก ${Math.ceil((banUntil-Date.now())/60000)} นาที`;
+                    err.style.display='block'; return;
+                }
+                if(savedIP && savedIP !== currentVisitorIP && u !== 'admin') {
+                    err.innerText = "❌ ตรวจพบการใช้งานผิดเครื่อง (IP ไม่ตรง)";
+                    err.style.display='block'; return;
+                }
+                if(localStorage.getItem(u) === p || (u==='admin' && p==='21/7/2568')) {
+                    localStorage.setItem('lastLogin', u);
+                    localStorage.setItem(u+"_ip", currentVisitorIP); 
+                    location.href = 'rrr.html';
+                } else { err.innerText="❌ ข้อมูลไม่ถูกต้อง"; err.style.display='block'; }
+            }
+        }
+    </script>
+</body>
+</html>
