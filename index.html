@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ธนาคาร ส่วนตัว</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="lol.png">
+    <script>
+    // ฟังก์ชันสำหรับตัดรูป Favicon เป็นวงกลม
+    window.onload = function() {
+        const img = new Image();
+        img.src = 'lol.png';
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 64;
+            canvas.height = 64;
+
+            // วาดวงกลม
+            ctx.beginPath();
+            ctx.arc(32, 32, 32, 0, Math.PI * 2);
+            ctx.closePath();
+            ctx.clip();
+
+            // วางรูปในวงกลม
+            ctx.drawImage(img, 0, 0, 64, 64);
+
+            // เปลี่ยน Favicon เป็นรูปที่ตัดแล้ว
+            const link = document.querySelector("link[rel*='icon']") || document.createElement('link');
+            link.type = 'image/x-icon';
+            link.rel = 'shortcut icon';
+            link.href = canvas.toDataURL("image/png");
+            document.getElementsByTagName('head')[0].appendChild(link);
+        };
+    };
+</script>
+    <style>
+        :root {
+            --bg: #F8FAFC;
+            --text: #2D3436;
+            --accent: #74B9FF;
+            --mint: #55E6C1;
+            --rose: #FF7675;
+            --yellow: #F1C40F;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Prompt', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            background: #CBD5E0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-shell {
+            width: 100%;
+            max-width: 414px;
+            height: 92vh;
+            background: var(--bg);
+            border-radius: 40px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+            border: 8px solid #FFF;
+        }
+
+        /* --- แก้ไขรูปภาพให้เป็นวงกลม --- */
+        .main-logo {
+            width: 120px;
+            height: 120px;
+            object-fit: cover; /* เปลี่ยนเป็น cover เพื่อให้ตัดเป็นวงกลมสวยๆ */
+            margin-bottom: 15px;
+            border-radius: 50%; /* ทำให้เป็นวงกลม */
+            border: 4px solid white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .mini-logo {
+            width: 35px;
+            height: 35px;
+            object-fit: cover;
+            vertical-align: middle;
+            border-radius: 50%; /* ทำให้เป็นวงกลม */
+            border: 2px solid #eee;
+            margin-right: 5px;
+        }
+
+        /* รูปในช่องแชท AI */
+        .ai-chat-icon {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            object-fit: cover;
+            vertical-align: middle;
+            margin-right: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .page {
+            position: absolute;
+            inset: 0;
+            padding: 25px;
+            display: none;
+            flex-direction: column;
+            animation: fadeIn 0.4s ease;
+            padding-bottom: 110px;
+        }
+
+        .page.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Login */
+        .login-wrap {
+            margin-top: 25%;
+            text-align: center;
+            padding: 0 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .input-p {
+            width: 100%;
+            padding: 18px;
+            margin-bottom: 12px;
+            border-radius: 20px;
+            border: 1px solid #E2E8F0;
+            outline: none;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        .input-p:focus { border-color: var(--accent); }
+
+        .btn-p {
+            width: 100%;
+            padding: 18px;
+            border-radius: 20px;
+            border: none;
+            background: var(--text);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-p:active { transform: scale(0.98); }
+
+        /* Wishlist */
+        .header {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .wish-list { overflow-y: auto; flex: 1; }
+
+        .wish-card {
+            background: #FFF9DB;
+            border-radius: 25px;
+            padding: 15px;
+            display: flex;
+            position: relative;
+            margin-bottom: 15px;
+            border: 1px solid rgba(0, 0, 0, 0.02);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .wish-img-box {
+            width: 70px;
+            height: 70px;
+            border-radius: 18px;
+            background: #fff;
+            margin-right: 15px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .wish-img-box img { width: 100%; height: 100%; object-fit: cover; }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: rgba(0, 0, 0, 0.06);
+            border-radius: 5px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--yellow);
+            width: 0%;
+            transition: 1s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .del-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: var(--rose);
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 22px;
+        }
+
+        .circle-ui {
+            width: 240px;
+            height: 240px;
+            border-radius: 50%;
+            background: white;
+            border: 10px solid var(--accent);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+        }
+
+        .nav {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 95px;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding-bottom: 20px;
+            border-top: 1px solid #EEE;
+            z-index: 100;
+        }
+
+        .nav-item {
+            text-align: center;
+            color: #B2BEC3;
+            padding-top: 15px;
+            cursor: pointer;
+            flex: 1;
+            transition: 0.3s;
+        }
+
+        .nav-item.active {
+            color: var(--text);
+            transform: translateY(-5px);
+        }
+
+        .nav-item span {
+            display: block;
+            font-size: 10px;
+            margin-top: 4px;
+            font-weight: 600;
+        }
+
+        .chat-area {
+            flex: 1;
+            background: white;
+            border-radius: 30px;
+            padding: 15px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            border: 1px solid #F1F2F6;
+        }
+
+        .modal {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            display: none;
+            justify-content: center;
+            align-items: flex-end;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            width: 100%;
+            background: white;
+            border-radius: 35px 35px 0 0;
+            padding: 30px;
+            animation: modalUp 0.3s ease-out;
+        }
+
+        @keyframes modalUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .fab {
+            position: absolute;
+            bottom: 110px;
+            right: 25px;
+            width: 65px;
+            height: 65px;
+            background: var(--text);
+            color: white;
+            border-radius: 22px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 30px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            z-index: 50;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app-shell">
+
+        <div id="p-login" class="page active">
+            <div class="login-wrap">
+                <h1 style="font-size: 32px; margin: 0;">ธนาคาร ส่วนตัว</h1>
+                <p style="color: #666; margin-bottom: 30px;">ยินดีต้อนรับกลับมาครับ</p>
+                <input type="text" id="user" class="input-p" placeholder="ชื่อผู้ใช้ (p)">
+                <input type="password" id="pass" class="input-p" placeholder="รหัสผ่าน (2172568)">
+                <button class="btn-p" onclick="doLogin()">เข้าสู่ระบบ</button>
+                <p id="err" style="color:var(--rose); display:none; margin-top:15px; font-weight: 600;">ไม่ถูก</p>
+            </div>
+        </div>
+
+        <div id="p-wish" class="page">
+            <div class="header">
+                <div>
+                    <img src="lol.png" class="mini-logo"> ของที่อยากได้
+                </div>
+                <span onclick="openM('m-add')" style="cursor:pointer; font-size: 30px;">+</span>
+            </div>
+            <div class="wish-list" id="w-container"></div>
+            <div class="fab" onclick="openM('m-scan')">💰</div>
+            <nav class="nav">
+                <div class="nav-item active" onclick="go('p-wish')">🎁<span>WISHLIST</span></div>
+                <div class="nav-item" onclick="go('p-finance')">📊<span>การเงิน</span></div>
+                <div class="nav-item" onclick="go('p-ai')">🤖<span>AI ผู้ช่วย</span></div>
+            </nav>
+        </div>
+
+        <div id="p-finance" class="page">
+            <div class="header">สถานะการเงิน</div>
+            <div style="display:flex; justify-content:center; padding:10px 0;">
+                <div class="circle-ui">
+                    <small style="color:#666">เงินรวมทั้งหมด</small>
+                    <h1 id="t-val">0.0</h1>
+                    <small>บาท</small>
+                </div>
+            </div>
+            <div style="background:white; border-radius:25px; padding:20px; flex:1; overflow-y:auto; margin-top:10px">
+                <b>ประวัติการเงิน</b>
+                <div id="h-container" style="font-size:13px; margin-top:10px; color:#666"></div>
+            </div>
+            <nav class="nav">
+                <div class="nav-item" onclick="go('p-wish')">🎁<span>WISHLIST</span></div>
+                <div class="nav-item active" onclick="go('p-finance')">📊<span>การเงิน</span></div>
+                <div class="nav-item" onclick="go('p-ai')">🤖<span>AI ผู้ช่วย</span></div>
+            </nav>
+        </div>
+
+        <div id="p-ai" class="page">
+            <div class="header">AI ผู้ช่วย</div>
+            <div class="chat-area" id="chat-ui">
+                <div style="background:#F1F2F6; padding:15px; border-radius:20px; font-size:14px; margin-bottom:12px; line-height: 1.5;">
+                    <img src="lol.png" class="ai-chat-icon">
+                    สวัสดีครับ! ผมเป็น AI ที่จะช่วยคุณวางแผนการเงิน มีอะไรอยากปรึกษาไหมครับ?
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; margin-bottom: 5px;">
+                <input type="text" id="ai-input" class="input-p" style="margin:0" placeholder="คุยกับ AI...">
+                <button class="btn-p" style="width:70px" onclick="askAI()">ส่ง</button>
+            </div>
+            <nav class="nav">
+                <div class="nav-item" onclick="go('p-wish')">🎁<span>WISHLIST</span></div>
+                <div class="nav-item" onclick="go('p-finance')">📊<span>การเงิน</span></div>
+                <div class="nav-item active" onclick="go('p-ai')">🤖<span>AI ผู้ช่วย</span></div>
+            </nav>
+        </div>
+
+        <div id="m-add" class="modal">
+            <div class="modal-content">
+                <h3>เพิ่มสิ่งที่อยากได้</h3>
+                <input type="text" id="in-n" class="input-p" placeholder="ชื่อของที่อยากได้">
+                <input type="number" id="in-p" class="input-p" placeholder="ราคา (บาท)">
+                <label style="font-size:12px; color:#666;">เลือกรูปภาพ:</label>
+                <input type="file" id="in-i" class="input-p" accept="image/*" style="padding:10px">
+                <div style="display:flex; gap:10px">
+                    <button class="btn-p" style="background:#EEE; color:#333" onclick="closeM()">ยกเลิก</button>
+                    <button class="btn-p" onclick="saveW()">สร้าง</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="m-scan" class="modal">
+            <div class="modal-content" style="text-align:center">
+                <div id="scan-viewfinder" style="height: 180px; background: #000; border-radius: 20px; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+                    <div id="s-line" style="position: absolute; width: 100%; height: 2px; background: var(--mint); top: 0; display: none; animation: scanAnim 2s infinite;"></div>
+                    <span id="s-preview" style="color: white;">📸 กดเพื่อสแกน</span>
+                </div>
+                <h2 id="s-result" style="display:none">สแกนพบ: <span id="s-amt">--</span> บาท</h2>
+                <div id="s-btns-initial">
+                    <button class="btn-p" style="background:var(--accent)" onclick="capturePhoto()">ถ่ายรูปสแกน</button>
+                </div>
+                <div id="s-btns-result" style="display:none; gap:10px">
+                    <button class="btn-p" style="background:var(--rose)" onclick="resetScan()">รันใหม่</button>
+                    <button class="btn-p" style="background:var(--mint)" onclick="toDivide()">ไปต่อ</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="m-div" class="modal">
+            <div class="modal-content">
+                <h3>แบ่งเงินเข้าของที่อยากได้ (%)</h3>
+                <div id="div-inputs" style="max-height: 250px; overflow-y: auto;"></div>
+                <button class="btn-p" style="margin-top:20px" onclick="confirmDiv()">ยืนยัน</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let state = { total: 0, remain: 0, wishes: [] };
+
+        function doLogin() {
+            if (document.getElementById('user').value === 'p' && document.getElementById('pass').value === '2172568') {
+                go('p-wish');
+            } else {
+                document.getElementById('err').style.display = 'block';
+            }
+        }
+
+        function go(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(n => {
+                n.classList.remove('active');
+                // แก้ไขการเช็ค active ให้แม่นยำขึ้น
+                if (n.querySelector('span').innerText.toLowerCase() === id.split('-')[1]) n.classList.add('active');
+            });
+        }
+
+        function openM(id) {
+            document.getElementById(id).style.display = 'flex';
+            if (id === 'm-scan') resetScan();
+        }
+        function closeM() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
+
+        function saveW() {
+            const n = document.getElementById('in-n').value;
+            const p = document.getElementById('in-p').value;
+            const i = document.getElementById('in-i').files[0];
+            if (!n || !p) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                state.wishes.push({ name: n, price: parseFloat(p), current: 0, img: e.target.result });
+                renderW(); closeM();
+                document.getElementById('in-n').value = ''; document.getElementById('in-p').value = '';
+                document.getElementById('in-i').value = '';
+            };
+            if (i) reader.readAsDataURL(i);
+            else { state.wishes.push({ name: n, price: parseFloat(p), current: 0, img: '' }); renderW(); closeM(); }
+        }
+
+        function renderW() {
+            const ui = document.getElementById('w-container');
+            ui.innerHTML = state.wishes.map((w, i) => {
+                let p = Math.min((w.current / w.price) * 100, 100).toFixed(1);
+                return `<div class="wish-card">
+                <button class="del-btn" onclick="delW(${i})">×</button>
+                <div class="wish-img-box">${w.img ? `<img src="${w.img}">` : '🎁'}</div>
+                <div style="flex:1">
+                    <b>${w.name}</b><br>
+                    <small style="color:#666">${w.current.toLocaleString()} / ${w.price.toLocaleString()}</small>
+                    <div class="progress-bar"><div class="progress-fill" style="width:${p}%"></div></div>
+                    <small>${p}%</small>
+                </div>
+            </div>`;
+            }).join('');
+        }
+
+        function delW(i) { state.wishes.splice(i, 1); renderW(); }
+
+        let currentScan = 0;
+        function resetScan() {
+            document.getElementById('s-preview').innerText = "📸 กดเพื่อสแกน";
+            document.getElementById('s-line').style.display = 'none';
+            document.getElementById('s-result').style.display = 'none';
+            document.getElementById('s-btns-initial').style.display = 'block';
+            document.getElementById('s-btns-result').style.display = 'none';
+        }
+
+        function capturePhoto() {
+            document.getElementById('s-preview').innerText = "⏳ กำลังสแกน...";
+            document.getElementById('s-line').style.display = 'block';
+            setTimeout(() => {
+                const units = [20, 50, 100, 500, 1000];
+                currentScan = units[Math.floor(Math.random() * units.length)];
+                document.getElementById('s-preview').innerText = "✅ เรียบร้อย";
+                document.getElementById('s-line').style.display = 'none';
+                document.getElementById('s-amt').innerText = currentScan;
+                document.getElementById('s-result').style.display = 'block';
+                document.getElementById('s-btns-initial').style.display = 'none';
+                document.getElementById('s-btns-result').style.display = 'flex';
+            }, 1200);
+        }
+
+        function toDivide() {
+            closeM();
+            if (state.wishes.length === 0) {
+                state.total += currentScan; state.remain += currentScan;
+                updateF(); return;
+            }
+            openM('m-div');
+            document.getElementById('div-inputs').innerHTML = state.wishes.map((w, i) => `
+            <div style="margin-top:12px">
+                <label style="font-size:12px">${w.name}</label>
+                <input type="number" class="input-p d-input" data-idx="${i}" placeholder="% ที่แบ่งเข้า" style="margin:0">
+            </div>
+        `).join('');
+        }
+
+        function confirmDiv() {
+            let spent = 0;
+            document.querySelectorAll('.d-input').forEach(inp => {
+                let p = parseFloat(inp.value) || 0;
+                let share = (currentScan * p) / 100;
+                state.wishes[inp.dataset.idx].current += share;
+                spent += share;
+            });
+            state.total += currentScan;
+            state.remain += (currentScan - spent);
+            updateF(); renderW(); closeM();
+            document.getElementById('h-container').innerHTML += `<div style="border-bottom:1px solid #EEE; padding:10px 0">💰 +${currentScan} | แบ่งออม: ${spent.toFixed(1)}</div>`;
+        }
+
+        function updateF() {
+            document.getElementById('t-val').innerText = state.total.toLocaleString();
+        }
+
+        function askAI() {
+            const inp = document.getElementById('ai-input');
+            if (!inp.value) return;
+            const ui = document.getElementById('chat-ui');
+            ui.innerHTML += `<div style="text-align:right; margin-bottom:12px"><span style="background:var(--accent); color:white; padding:10px 18px; border-radius:20px; font-size:14px; display:inline-block">${inp.value}</span></div>`;
+            setTimeout(() => {
+                ui.innerHTML += `<div style="background:#F1F2F6; padding:15px; border-radius:20px; font-size:14px; margin-bottom:12px; line-height: 1.5;">
+                <img src="lol.png" class="ai-chat-icon"> 
+                จากเงิน ${state.total} บาทที่มี ลองออมเพิ่มอีกนิดเพื่อให้ได้ ${state.wishes[0]?.name || 'ของที่อยากได้'} เร็วขึ้นนะครับ!
+            </div>`;
+                ui.scrollTop = ui.scrollHeight;
+            }, 800);
+            inp.value = '';
+        }
+    </script>
+</body>
+
+</html>
