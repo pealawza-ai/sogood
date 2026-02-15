@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>ป๊อกเด้งออนไลน์</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        .player-box { border: 2px solid #fff; padding: 10px; margin: 10px; display: inline-block; background: #222; }
+        body { background: #063d27; color: white; font-family: sans-serif; text-align: center; }
+    </style>
+</head>
+<body>
+    <h1>🃏 ห้องเล่นไพ่ออนไลน์</h1>
+    <div id="game-board"></div>
+    <hr>
+    <button onclick="draw()" style="padding: 20px; font-size: 20px;">จั่วไพ่!</button>
+
+    <script>
+        const socket = io();
+        const myName = prompt("ใส่ชื่อเล่นของคุณ:");
+        socket.emit('joinGame', myName);
+
+        socket.on('updatePlayers', (players) => {
+            const board = document.getElementById('game-board');
+            board.innerHTML = '';
+            for (let id in players) {
+                const p = players[id];
+                board.innerHTML += `
+                    <div class="player-box">
+                        <h3>${p.name} ${id === socket.id ? '(คุณ)' : ''}</h3>
+                        <p>ไพ่: ${p.hand.join(', ') || 'ยังไม่มี'}</p>
+                        <p>แต้ม: <b>${p.score}</b></p>
+                    </div>
+                `;
+            }
+        });
+
+        function draw() {
+            socket.emit('drawCard');
+        }
+    </script>
+</body>
+</html>
