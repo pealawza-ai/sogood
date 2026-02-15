@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ที่เก็บเงิน AI Scan</title>
+    <title>ที่เก็บเงิน AI Ultra Scan</title>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="icon" id="favicon" type="image/png" href="lol.png">
+    <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
     <style>
         :root {
             --bg: #F8FAFC; --text: #2D3436; --accent: #74B9FF;
@@ -22,62 +22,35 @@
             border: 8px solid #FFF;
         }
 
-        /* --- รูปวงกลม --- */
         .main-logo { width: 120px; height: 120px; object-fit: cover; border-radius: 50%; margin-bottom: 15px; border: 3px solid #eee; }
         .mini-logo { width: 35px; height: 35px; object-fit: cover; border-radius: 50%; vertical-align: middle; }
-        .ai-chat-icon { width: 25px; height: 25px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 5px; }
-
-        /* --- ระบบปัดหน้า --- */
-        .page-container {
-            display: flex; width: 100%; height: 100%;
-            overflow-x: auto; scroll-snap-type: x mandatory;
-            scroll-behavior: smooth;
-        }
-        .page-container::-webkit-scrollbar { display: none; }
         
-        .page {
-            min-width: 100%; height: 100%;
-            padding: 25px; padding-bottom: 110px;
-            scroll-snap-align: start;
-            display: flex; flex-direction: column;
-            overflow-y: auto;
-        }
+        .page-container { display: flex; width: 100%; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; }
+        .page-container::-webkit-scrollbar { display: none; }
+        .page { min-width: 100%; height: 100%; padding: 25px; padding-bottom: 110px; scroll-snap-align: start; display: flex; flex-direction: column; overflow-y: auto; }
 
-        #p-login { 
-            position: absolute; inset: 0; z-index: 1000; background: var(--bg);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
-
+        #p-login { position: absolute; inset: 0; z-index: 1000; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .header { font-size: 24px; font-weight: 600; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
         .wish-card { background: #FFF9DB; border-radius: 25px; padding: 15px; display: flex; position: relative; margin-bottom: 15px; justify-content: space-between; align-items: center;}
         
-        .circle-ui {
-            width: 220px; height: 220px; border-radius: 50%; background: white;
-            border: 10px solid var(--accent); display: flex; flex-direction: column;
-            justify-content: center; align-items: center; margin: 20px auto;
-        }
+        .circle-ui { width: 220px; height: 220px; border-radius: 50%; background: white; border: 10px solid var(--accent); display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 20px auto; }
 
-        .nav {
-            position: absolute; bottom: 0; width: 100%; height: 85px;
-            background: white; display: flex; justify-content: space-around;
-            padding-bottom: 10px; border-top: 1px solid #EEE; z-index: 100;
-        }
+        .nav { position: absolute; bottom: 0; width: 100%; height: 85px; background: white; display: flex; justify-content: space-around; padding-bottom: 10px; border-top: 1px solid #EEE; z-index: 100; }
         .nav-item { text-align: center; color: #B2BEC3; padding-top: 15px; flex: 1; cursor: pointer; }
         .nav-item.active { color: var(--text); font-weight: bold; }
 
-        /* ส่วนกล้องและการประมวลผล */
-        .cam-container { position: relative; width: 100%; height: 250px; border-radius: 25px; overflow: hidden; background: #000; margin-bottom: 15px; border: 4px solid #eee; }
+        /* Camera UI */
+        .cam-container { position: relative; width: 100%; height: 280px; border-radius: 25px; overflow: hidden; background: #000; margin-bottom: 15px; border: 4px solid #eee; }
         #video-preview { width: 100%; height: 100%; object-fit: cover; }
-        #scan-line { position: absolute; width: 100%; height: 2px; background: rgba(255,255,255,0.5); top: 0; animation: scan 2s infinite linear; display: none; }
-        @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
+        #target-frame { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 200px; height: 120px; border: 2px dashed #fff; border-radius: 10px; box-shadow: 0 0 0 1000px rgba(0,0,0,0.4); pointer-events: none; }
+        #target-frame::after { content: "เล็งให้เลขอยู่กลางกรอบ"; position: absolute; bottom: -30px; left: 0; width: 100%; color: #fff; font-size: 12px; }
 
         .modal { position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: flex-end; z-index: 2000; }
         .modal-content { width: 100%; background: white; border-radius: 30px 30px 0 0; padding: 25px; }
-        .input-p { width: 100%; padding: 15px; margin-bottom: 10px; border-radius: 15px; border: 1px solid #ddd; outline: none; }
         .btn-p { width: 100%; padding: 15px; border-radius: 15px; border: none; background: var(--text); color: white; font-weight: 600; cursor: pointer;}
         .fab { position: absolute; bottom: 100px; right: 20px; width: 60px; height: 60px; background: var(--text); color: white; border-radius: 20px; display: flex; justify-content: center; align-items: center; font-size: 25px; z-index: 99; cursor: pointer;}
         
-        #color-debug { width: 30px; height: 30px; border-radius: 50%; display: inline-block; vertical-align: middle; margin-left: 10px; border: 1px solid #ccc; }
+        #scan-loading { display: none; margin-top: 10px; color: var(--accent); font-weight: bold; }
     </style>
 </head>
 <body>
@@ -86,8 +59,8 @@
     <div id="p-login">
         <img src="lol.png" class="main-logo">
         <h1>ที่เก็บเงิน</h1>
-        <input type="text" id="user" class="input-p" style="width: 80%" placeholder="ชื่อผู้ใช้ (p)">
-        <input type="password" id="pass" class="input-p" style="width: 80%" placeholder="รหัสผ่าน (2172568)">
+        <input type="text" id="user" style="width:80%; padding:15px; margin-bottom:10px; border-radius:15px; border:1px solid #ddd;" placeholder="ชื่อผู้ใช้ (p)">
+        <input type="password" id="pass" style="width:80%; padding:15px; margin-bottom:10px; border-radius:15px; border:1px solid #ddd;" placeholder="รหัสผ่าน (2172568)">
         <button class="btn-p" style="width: 80%" onclick="doLogin()">เข้าสู่ระบบ</button>
     </div>
 
@@ -100,15 +73,7 @@
         <div id="p-finance" class="page">
             <div class="header">สถานะการเงิน</div>
             <div class="circle-ui"><small>เงินรวม</small><h1 id="t-val">0</h1><small>บาท</small></div>
-            <div style="background:white; border-radius:20px; padding:15px; flex:1">
-                <b>ประวัติ</b><div id="h-container"></div>
-            </div>
-        </div>
-
-        <div id="p-ai" class="page">
-            <div class="header">AI ผู้ช่วย</div>
-            <div id="chat-ui" style="flex:1; background:white; border-radius:20px; padding:10px; overflow-y:auto; margin-bottom:10px"></div>
-            <div style="display:flex; gap:5px"><input type="text" id="ai-input" class="input-p" style="margin:0"><button class="btn-p" style="width:60px" onclick="askAI()">ส่ง</button></div>
+            <div style="background:white; border-radius:20px; padding:15px; flex:1"><b>ประวัติ</b><div id="h-container"></div></div>
         </div>
     </div>
 
@@ -116,145 +81,121 @@
 
     <div id="m-scan" class="modal">
         <div class="modal-content" style="text-align:center">
-            <h3>AI เครื่องสแกนธนบัตร</h3>
+            <h3>AI สแกนเงิน (เหรียญ/แบงค์)</h3>
             <div class="cam-container">
                 <video id="video-preview" autoplay playsinline></video>
-                <div id="scan-line"></div>
+                <div id="target-frame"></div>
                 <canvas id="proc-canvas" style="display:none"></canvas>
             </div>
             
-            <h2 id="s-result" style="display:none">
-                AI ประมวลผลเป็น: <span id="s-amt" style="color:var(--accent)">0</span> บาท
-                <div id="color-debug"></div>
-            </h2>
+            <div id="scan-loading">🤖 AI กำลังอ่านตัวเลข...</div>
+
+            <h2 id="s-result" style="display:none">พบยอดเงิน: <span id="s-amt" style="color:var(--accent)">0</span> บาท</h2>
 
             <div id="scan-btns">
-                <button id="cam-btn" class="btn-p" style="background:var(--accent)" onclick="startScanning()">📸 เริ่มถ่ายภาพและประมวลผล</button>
+                <button id="snap-btn" class="btn-p" style="background:var(--accent)" onclick="captureAndProcess()">📸 ถ่ายภาพเพื่อประมวลผล</button>
                 <button class="btn-p" style="background:#eee; color:#333; margin-top:10px" onclick="closeM()">ปิด</button>
             </div>
 
             <div id="post-scan" style="display:none; gap:10px; margin-top:10px">
                 <button class="btn-p" style="background:var(--rose)" onclick="resetScan()">ถ่ายใหม่</button>
-                <button class="btn-p" style="background:var(--mint)" onclick="toDivide()">บันทึกยอดนี้</button>
+                <button class="btn-p" style="background:var(--mint)" onclick="toDivide()">ยืนยันบันทึกยอดนี้</button>
             </div>
         </div>
     </div>
-
-    <div id="m-add" class="modal"><div class="modal-content">
-        <h3>เพิ่มของที่อยากได้</h3>
-        <input type="text" id="in-n" class="input-p" placeholder="ชื่อของ">
-        <input type="number" id="in-p" class="input-p" placeholder="ราคา">
-        <button class="btn-p" onclick="saveW()">บันทึก</button>
-        <button class="btn-p" style="background:#eee; color:#333; margin-top:5px;" onclick="closeM()">ปิด</button>
-    </div></div>
 </div>
 
 <script>
     let state = JSON.parse(localStorage.getItem('pData')) || { total: 0, wishes: [], history: [] };
     let streamActive = null;
 
-    function saveData() {
-        localStorage.setItem('pData', JSON.stringify(state));
-        renderAll();
-    }
-
     function renderAll() {
         document.getElementById('t-val').innerText = state.total;
-        document.getElementById('w-container').innerHTML = state.wishes.map((w, idx) => `
-            <div class="wish-card">
-                <span><b>${w.name}</b> <br><small>${w.price} บาท</small></span>
-                <button onclick="deleteW(${idx})" style="border:none; background:none; color:red">✕</button>
-            </div>
-        `).join('');
-        document.getElementById('h-container').innerHTML = state.history.map(h => `
-            <div style="font-size:14px; padding:5px 0; border-bottom:1px dashed #eee">${h}</div>
-        `).reverse().join('');
+        document.getElementById('h-container').innerHTML = state.history.slice(-10).map(h => `<div style="font-size:14px; padding:5px 0; border-bottom:1px dashed #eee">${h}</div>`).reverse().join('');
+        document.getElementById('w-container').innerHTML = state.wishes.map((w, idx) => `<div class="wish-card"><span><b>${w.name}</b> <br><small>${w.price} บาท</small></span></div>`).join('');
     }
 
-    // --- AI ประมวลผลค่าสี ---
-    async function startScanning() {
-        const video = document.getElementById('video-preview');
-        const scanLine = document.getElementById('scan-line');
-        const camBtn = document.getElementById('cam-btn');
-
-        try {
-            streamActive = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-            video.srcObject = streamActive;
-            scanLine.style.display = 'block';
-            camBtn.innerText = "กำลังประมวลผล...";
-            camBtn.disabled = true;
-
-            // หน่วงเวลาให้กล้องโฟกัส 2 วินาที แล้วจับภาพ
-            setTimeout(() => {
-                processImage();
-            }, 2500);
-
-        } catch (err) {
-            alert("กรุณาอนุญาตการเข้าถึงกล้อง และรันผ่าน HTTPS");
+    async function openM(id) {
+        document.getElementById(id).style.display = 'flex';
+        if(id === 'm-scan') {
+            try {
+                streamActive = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                document.getElementById('video-preview').srcObject = streamActive;
+            } catch (err) { alert("เข้าถึงกล้องไม่ได้"); }
         }
     }
 
-    function processImage() {
+    async function captureAndProcess() {
         const video = document.getElementById('video-preview');
         const canvas = document.getElementById('proc-canvas');
         const ctx = canvas.getContext('2d');
-
-        canvas.width = 100; // ลดขนาดเพื่อคำนวณค่าสีเฉลี่ยได้ไวขึ้น
-        canvas.height = 100;
-        ctx.drawImage(video, 0, 0, 100, 100);
-
-        const imgData = ctx.getImageData(0, 0, 100, 100).data;
-        let r = 0, g = 0, b = 0;
-
-        for (let i = 0; i < imgData.length; i += 4) {
-            r += imgData[i];
-            g += imgData[i+1];
-            b += imgData[i+2];
-        }
-
-        r = Math.floor(r / (imgData.length / 4));
-        g = Math.floor(g / (imgData.length / 4));
-        b = Math.floor(b / (imgData.length / 4));
-
-        const detectedAmt = identifyBanknote(r, g, b);
+        const loading = document.getElementById('scan-loading');
         
-        // โชว์ผลลัพธ์
-        window.lastScan = detectedAmt;
-        document.getElementById('s-amt').innerText = detectedAmt;
-        document.getElementById('color-debug').style.background = `rgb(${r},${g},${b})`;
-        document.getElementById('s-result').style.display = 'block';
-        document.getElementById('post-scan').style.display = 'flex';
-        document.getElementById('scan-btns').style.display = 'none';
-        document.getElementById('scan-line').style.display = 'none';
+        loading.style.display = 'block';
+        document.getElementById('snap-btn').disabled = true;
 
-        if(streamActive) streamActive.getTracks().forEach(t => t.stop());
+        // Crop เฉพาะส่วนในกรอบ target-frame เพื่อความแม่นยำ
+        canvas.width = 400; canvas.height = 240;
+        ctx.drawImage(video, video.videoWidth*0.25, video.videoHeight*0.3, video.videoWidth*0.5, video.videoHeight*0.4, 0, 0, 400, 240);
+        
+        const dataUrl = canvas.toDataURL('image/png');
+
+        // ใช้ Tesseract.js อ่านตัวเลขไทยและอารบิก
+        try {
+            const result = await Tesseract.recognize(dataUrl, 'tha+eng');
+            const text = result.data.text;
+            console.log("AI Read:", text);
+            
+            const value = parseMoneyValue(text);
+            
+            loading.style.display = 'none';
+            window.lastScan = value;
+            document.getElementById('s-amt').innerText = value;
+            document.getElementById('s-result').style.display = 'block';
+            document.getElementById('post-scan').style.display = 'flex';
+            document.getElementById('scan-btns').style.display = 'none';
+            
+            if(streamActive) streamActive.getTracks().forEach(t => t.stop());
+        } catch (e) {
+            alert("AI ประมวลผลผิดพลาด ลองใหม่อีกครั้ง");
+            resetScan();
+        }
     }
 
-    function identifyBanknote(r, g, b) {
-        // อัลกอริทึมแยกแยะแบงค์ไทยเบื้องต้นจากค่าสีเด่น
-        if (g > r && g > b && g > 80) return 20;    // แบงค์ 20 (เขียว)
-        if (b > r && b > g) return 50;              // แบงค์ 50 (ฟ้า)
-        if (r > g && r > b && r > 120 && g < 150) return 100; // แบงค์ 100 (แดง)
-        if (r > 100 && b > 100 && g < 150) return 500; // แบงค์ 500 (ม่วง)
-        if (r > 100 && g > 100 && b > 100) return 1000; // แบงค์ 1000 (น้ำตาล/เทา)
-        return 20; // Default ถ้าแยกไม่ออกให้เป็น 20
+    function parseMoneyValue(text) {
+        // แปลงเลขไทยเป็นอารบิก
+        const thDigits = {'๐':0,'๑':1,'๒':2,'๓':3,'๔':4,'๕':5,'๖':6,'๗':7,'๘':8,'๙':9};
+        let cleanText = text.replace(/[๐-๙]/g, s => thDigits[s]);
+        
+        // ค้นหาตัวเลขที่มีในระบบเงินไทย
+        const validValues = [1000, 500, 100, 50, 20, 10, 5, 1];
+        for (let val of validValues) {
+            if (cleanText.includes(val.toString())) return val;
+        }
+        return 0; // ถ้าหาไม่เจอ
     }
 
     function resetScan() {
         document.getElementById('s-result').style.display = 'none';
         document.getElementById('post-scan').style.display = 'none';
         document.getElementById('scan-btns').style.display = 'block';
-        document.getElementById('cam-btn').innerText = "📸 เริ่มถ่ายภาพและประมวลผล";
-        document.getElementById('cam-btn').disabled = false;
-        startScanning();
+        document.getElementById('snap-btn').disabled = false;
+        openM('m-scan');
     }
 
-    // --- ระบบอื่นๆ ---
     function toDivide() {
-        state.total += window.lastScan;
-        state.history.push(`💰 สแกนแบงค์ ${window.lastScan} บาท`);
-        saveData();
+        if(window.lastScan > 0) {
+            state.total += window.lastScan;
+            state.history.push(`💰 สแกนพบ ${window.lastScan} บาท`);
+            localStorage.setItem('pData', JSON.stringify(state));
+            renderAll();
+        }
         closeM();
+    }
+
+    function closeM() {
+        document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+        if(streamActive) streamActive.getTracks().forEach(t => t.stop());
     }
 
     function doLogin() {
@@ -263,47 +204,9 @@
         }
     }
 
-    function openM(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeM() { 
-        document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
-        if(streamActive) streamActive.getTracks().forEach(t => t.stop());
-        document.getElementById('scan-btns').style.display = 'block';
-        document.getElementById('cam-btn').innerText = "📸 เริ่มถ่ายภาพและประมวลผล";
-        document.getElementById('cam-btn').disabled = false;
-        document.getElementById('s-result').style.display = 'none';
-        document.getElementById('post-scan').style.display = 'none';
-    }
-
-    function saveW() {
-        const n = document.getElementById('in-n').value;
-        const p = document.getElementById('in-p').value;
-        if(n && p) { state.wishes.push({name:n, price:p}); saveData(); closeM(); }
-    }
-
-    function deleteW(idx) { state.wishes.splice(idx, 1); saveData(); }
-
     function handleScroll() {
         const index = Math.round(document.getElementById('main-swiper').scrollLeft / window.innerWidth);
-        document.querySelectorAll('.nav-item').forEach((item, i) => {
-            item.classList.toggle('active', i === index);
-        });
-    }
-
-    function jump(idx) {
-        const swiper = document.getElementById('main-swiper');
-        swiper.scrollTo({ left: swiper.offsetWidth * idx, behavior: 'smooth' });
-    }
-
-    function askAI() {
-        const val = document.getElementById('ai-input').value;
-        if(!val) return;
-        const ui = document.getElementById('chat-ui');
-        ui.innerHTML += `<div style="text-align:right; margin:5px"><span style="background:#eee; padding:5px 10px; border-radius:10px">${val}</span></div>`;
-        setTimeout(() => {
-            ui.innerHTML += `<div><img src="lol.png" class="ai-chat-icon"> AI พร้อมช่วยประหยัดเงินครับ!</div>`;
-            ui.scrollTop = ui.scrollHeight;
-        }, 500);
-        document.getElementById('ai-input').value = '';
+        document.querySelectorAll('.nav-item').forEach((item, i) => item.classList.toggle('active', i === index));
     }
 
     renderAll();
